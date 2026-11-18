@@ -77,15 +77,15 @@ export const HeroCanvasScrub: React.FC<HeroCanvasScrubProps> = ({
     // Cover scale based on canvas buffer dimensions
     let scale = Math.max(canvasW / imgW, canvasH / imgH);
 
-    // Calibrated crop zoom (1.28 desktop, 1.30 mobile) to safely crop the bottom-right watermark
+    // Calibrated crop zoom (1.34 desktop, 1.36 mobile) to safely crop the bottom-right watermark across all aspect ratios
     const isMobile = window.innerWidth < 768;
-    const zoomFactor = isMobile ? 1.30 : 1.28;
+    const zoomFactor = isMobile ? 1.36 : 1.34;
     scale *= zoomFactor;
 
     const drawW = imgW * scale;
     const drawH = imgH * scale;
 
-    // Center horizontally, anchor flush to top so bottom-right watermark is cropped out and top signage remains visible
+    // Center horizontally, anchor flush to top so bottom-right watermark is completely cropped out and top signage remains visible
     const drawX = (canvasW - drawW) / 2;
     const drawY = 0;
 

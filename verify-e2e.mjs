@@ -66,27 +66,71 @@ async function run() {
       throw new Error('Headline does not contain "Your beauty."');
     }
 
-    // Test Hero Canvas Scrub
-    console.log('4. Testing Canvas Scroll Scrubbing...');
-    const counterTextBefore = await page.$eval('#home', () => {
-      const el = document.querySelector('span.font-mono');
-      return el ? el.innerText : '';
+    // Test Hero Canvas Scrub & Watermark / Frame Counter Absence
+    console.log('4. Testing Canvas Scroll Scrubbing & Watermark Removal...');
+
+    // Explicit assertion: Verify frame counter (e.g. "001 / 190") is completely removed from the DOM
+    const hasFrameCounter = await page.evaluate(() => {
+      const allText = document.body.innerText;
+      const spans = Array.from(document.querySelectorAll('span'));
+      return (
+        allText.includes('/ 190') ||
+        spans.some((s) => s.innerText.includes('/ 190'))
+      );
     });
-    console.log('Initial frame indicator:', counterTextBefore);
+    console.log('Frame counter "/ 190" present:', hasFrameCounter);
+    if (hasFrameCounter) {
+      throw new Error('Frame counter "/ 190" should be completely removed, but was found in DOM!');
+    }
+
+    // Verify canvas exists and is rendering
+    const canvasSampleBefore = await page.evaluate(() => {
+      const canvas = document.querySelector('#home canvas');
+      if (!canvas) return null;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+      const center = ctx.getImageData(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1).data;
+      return Array.from(center);
+    });
+    console.log('Canvas initial center pixel:', canvasSampleBefore);
 
     // Scroll down to scrub canvas
     await page.evaluate(() => {
       window.scrollTo(0, 1200);
     });
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    await new Promise((resolve) => setTimeout(resolve, 800));
 
-    // Check if scrub advanced
-    const counterTextAfter = await page.evaluate(() => {
-      const spans = Array.from(document.querySelectorAll('span'));
-      const counter = spans.find((s) => s.innerText.includes('/ 190'));
-      return counter ? counter.innerText : '';
+    // Verify canvas scrubbed and updated
+    const canvasSampleAfter = await page.evaluate(() => {
+      const canvas = document.querySelector('#home canvas');
+      if (!canvas) return null;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+      const center = ctx.getImageData(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1).data;
+      return Array.from(center);
     });
-    console.log('Advanced frame indicator after scroll:', counterTextAfter);
+    console.log('Canvas center pixel after scroll:', canvasSampleAfter);
+
+    // Verify bottom-right corner does not contain Gemini sparkle watermark
+    const watermarkCheck = await page.evaluate(() => {
+      const canvas = document.querySelector('#home canvas');
+      if (!canvas) return { error: 'No canvas found' };
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return { error: 'No context found' };
+      const w = canvas.width;
+      const h = canvas.height;
+      const corner = ctx.getImageData(Math.max(0, w - 60), Math.max(0, h - 60), 60, 60).data;
+      let maxBrightness = 0;
+      for (let i = 0; i < corner.length; i += 4) {
+        const brightness = (corner[i] + corner[i + 1] + corner[i + 2]) / 3;
+        if (brightness > maxBrightness) maxBrightness = brightness;
+      }
+      return { maxBrightness };
+    });
+    console.log('Canvas bottom-right corner max brightness:', watermarkCheck.maxBrightness);
+    if (watermarkCheck.maxBrightness > 120) {
+      throw new Error(`Potential watermark detected! Bottom-right max brightness is ${watermarkCheck.maxBrightness}`);
+    }
 
     // Test Navigation links
     console.log('5. Testing Services Navigation and Discipline Interaction...');
