@@ -24,7 +24,6 @@ export const HeroCanvasScrub: React.FC<HeroCanvasScrubProps> = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
-  const counterRef = useRef<HTMLSpanElement | null>(null);
 
   // Line-by-line reveal references
   const line1Ref = useRef<HTMLSpanElement | null>(null);
@@ -78,17 +77,17 @@ export const HeroCanvasScrub: React.FC<HeroCanvasScrubProps> = ({
     // Cover scale based on canvas buffer dimensions
     let scale = Math.max(canvasW / imgW, canvasH / imgH);
 
-    // Calibrated crop zoom (1.08 desktop, 1.20 mobile) to safely crop the watermark
+    // Calibrated crop zoom (1.28 desktop, 1.30 mobile) to safely crop the bottom-right watermark
     const isMobile = window.innerWidth < 768;
-    const zoomFactor = isMobile ? 1.20 : 1.08;
+    const zoomFactor = isMobile ? 1.30 : 1.28;
     scale *= zoomFactor;
 
     const drawW = imgW * scale;
     const drawH = imgH * scale;
 
-    // Center horizontally, anchor top 10% vertically
+    // Center horizontally, anchor flush to top so bottom-right watermark is cropped out and top signage remains visible
     const drawX = (canvasW - drawW) / 2;
-    const drawY = (canvasH - drawH) * 0.10;
+    const drawY = 0;
 
     // Ensure high-fidelity bicubic smoothing on every frame draw
     ctx.imageSmoothingEnabled = true;
@@ -265,12 +264,6 @@ export const HeroCanvasScrub: React.FC<HeroCanvasScrubProps> = ({
         targetFrameRef.current = frameIndex;
         renderNextFrame();
 
-        // Update frame counter
-        if (counterRef.current) {
-          const framePad = String(frameIndex + 1).padStart(3, '0');
-          counterRef.current.innerText = `${framePad} / 190`;
-        }
-
         // Fade out hero overlays as user scrolls into the salon interior
         if (overlayRef.current) {
           const opacity = Math.max(0, 1 - progress * 2.8);
@@ -429,12 +422,6 @@ export const HeroCanvasScrub: React.FC<HeroCanvasScrubProps> = ({
                 SCROLL TO EXPLORE
               </span>
               <ArrowDown className="w-3.5 h-3.5 text-[#C5A880] animate-bounce" />
-              <span
-                ref={counterRef}
-                className="font-mono text-[9px] tracking-widest text-[#C5A880] uppercase"
-              >
-                001 / 190
-              </span>
             </div>
           </div>
         </div>
