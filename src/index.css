@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Cormorant Garamond", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-hindi: "Noto Serif Devanagari", serif;
+
+  --color-ivory: #FAF8F5;
+  --color-ivory-light: #FDFBF8;
+  --color-ivory-warm: #F4EFE6;
+  --color-champagne: #EBE3D5;
+  --color-sand: #DFD5C6;
+  --color-gold: #C5A880;
+  --color-gold-light: #DEC6A5;
+  --color-gold-dark: #9C7E55;
+  --color-charcoal: #1A1918;
+  --color-charcoal-light: #2A2825;
+  --color-charcoal-muted: #646059;
+  --color-charcoal-border: #373430;
+  --color-border-subtle: #E8E2D8;
+}
+
+:root {
+  /* Configurable crop factor to cleanly push out bottom-right AI watermarks */
+  --video-zoom: 1.24;
+  --video-origin-y: 12%;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --video-zoom: 1.35;
+    --video-origin-y: 15%;
+  }
+}
+
+/* Base resets & typography */
+html {
+  scroll-behavior: initial; /* Lenis handles smooth scrolling */
+  background-color: #FAF8F5;
+  color: #1A1918;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #FAF8F5;
+  overflow-x: hidden;
+}
+
+/* Luxury typography styling */
+h1, h2, h3, .font-editorial {
+  font-family: var(--font-serif);
+  letter-spacing: -0.015em;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF8F5;
+}
+::-webkit-scrollbar-thumb {
+  background: #D8CEBC;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C5A880;
+}
+
+/* Subtle luxury grain */
+.bg-grain {
+  background-image: radial-gradient(#1a191808 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Smooth transitions */
+.transition-luxury {
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Video cropping container & watermark safe system */
+@layer utilities {
+  .video-scrub-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .video-scrub-element {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform-origin: center var(--video-origin-y, 12%);
+    transform: scale(var(--video-zoom, 1.24));
+    pointer-events: none;
+  }
+}
+
+/* Reduced motion fallback */
+@media (prefers-reduced-motion: reduce) {
+  .video-scrub-element {
+    display: none;
+  }
+  .video-reduced-motion-fallback {
+    display: block !important;
+  }
+}
